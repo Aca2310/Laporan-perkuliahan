@@ -25,7 +25,6 @@ class KelasPage extends StatelessWidget {
                     Padding(
                       padding: EdgeInsets.symmetric(vertical: 10),
                       child: Container(
-                        width: 300,
                         height: 150,
                         decoration: BoxDecoration(
                           color: Colors.green,
@@ -49,7 +48,7 @@ class KelasPage extends StatelessWidget {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      matkul, 
+                                      matkul,
                                       style: TextStyle(
                                         fontSize: 22,
                                         fontWeight: FontWeight.bold,
