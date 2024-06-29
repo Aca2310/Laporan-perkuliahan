@@ -3,6 +3,7 @@ import 'package:ui_tb/Pages/HomePage.dart';
 import 'package:ui_tb/Pages/KelasPage.dart';
 import 'package:ui_tb/Pages/historynilai.dart';
 import 'package:ui_tb/Pages/historypermasalahan.dart';
+import 'package:ui_tb/Pages/login.dart';
 import 'package:ui_tb/Pages/penilaian.dart';
 import 'package:ui_tb/Pages/permasalahan.dart';
 
@@ -21,13 +22,11 @@ class MyApp extends StatelessWidget {
           scaffoldBackgroundColor: Color(0xFFF5FF3),
         ),
         routes: {
-          "/": (context) => HomePage(),
-          "kelas": (context) => KelasPage(
-              matkul: ModalRoute.of(context)!.settings.arguments as String),
-          "penilaian": (context) => PenilaianPage(
-              pertemuan: ModalRoute.of(context)!.settings.arguments as String),
-          "permasalahan": (context) => permasalahan(
-              matkul: ModalRoute.of(context)!.settings.arguments as String),
+          "/": (context) => LoginPage(),
+          "Home": (context) => HomePage(),
+          "kelas": (context) => KelasPage(),
+          "penilaian": (context) => PenilaianPage(),
+          "permasalahan": (context) => Permasalahan(),
           "Historypermasalah": (context) => HistoryPermasalahanPage(),
           "HistoryNilai": (context) => HistoryNilaiPage(),
         });

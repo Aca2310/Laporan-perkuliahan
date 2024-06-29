@@ -1,7 +1,83 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
-class DrawerWidget extends StatelessWidget {
+class DrawerWidget extends StatefulWidget {
+  @override
+  _DrawerWidgetState createState() => _DrawerWidgetState();
+}
+
+class _DrawerWidgetState extends State<DrawerWidget> {
+  final storage = FlutterSecureStorage();
+  String name = '';
+  String nim = '';
+
+  @override
+  void initState() {
+    super.initState();
+    fetchUserData();
+  }
+
+  Future<void> fetchUserData() async {
+    try {
+      String? token = await storage.read(key: 'token');
+      if (token == null) {
+        throw Exception('Token is null');
+      }
+
+      final url = Uri.parse('https://backend-pmp.unand.dev/api/me');
+      final response = await http.get(
+        url,
+        headers: {
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final jsonData = jsonDecode(response.body);
+        setState(() {
+          name = jsonData['data']['name'];
+          nim = jsonData['data']['nim'];
+        });
+      } else {
+        throw Exception('Failed to load user data');
+      }
+    } catch (e) {
+      print('Error fetching user data: $e');
+      // Handle error accordingly
+    }
+  }
+
+  Future<void> logout() async {
+    try {
+      String? token = await storage.read(key: 'token');
+      if (token == null) {
+        throw Exception('Token is null');
+      }
+
+      final url = Uri.parse('https://backend-pmp.unand.dev/api/logout');
+      final response = await http.post(
+        url,
+        headers: {
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        // Clear token from local storage
+        await storage.delete(key: 'token');
+        Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
+      } else {
+        throw Exception('Failed to logout');
+      }
+    } catch (e) {
+      print('Error during logout: $e');
+      // Handle error accordingly
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Drawer(
@@ -18,18 +94,19 @@ class DrawerWidget extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 CircleAvatar(
-                  backgroundImage: AssetImage(""),
+                  backgroundImage:
+                      AssetImage(""), // Ganti dengan asset gambar Anda
                 ),
                 SizedBox(height: 8),
                 Text(
-                  "aca",
+                  name,
                   style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
                       color: Colors.white),
                 ),
                 Text(
-                  "2111523024",
+                  nim,
                   style: TextStyle(color: Colors.white),
                 ),
               ],
@@ -37,7 +114,7 @@ class DrawerWidget extends StatelessWidget {
           ),
           ListTile(
             onTap: () {
-              Navigator.pushNamed(context, "/");
+              Navigator.pushNamed(context, "Home");
             },
             leading: Icon(
               CupertinoIcons.home,
@@ -53,33 +130,18 @@ class DrawerWidget extends StatelessWidget {
           ),
           ListTile(
             onTap: () {
-              Navigator.pushNamed(context, "HistoryNilai");
+              logout();
             },
             leading: Icon(
-              CupertinoIcons.star,
-              color: Colors.green,
+              Icons.logout,
+              color: Colors.red,
             ),
             title: Text(
-              "Penilaian",
+              "Logout",
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-          ListTile(
-            onTap: () {
-              Navigator.pushNamed(context, "Historypermasalah");
-            },
-            leading: Icon(
-              CupertinoIcons.question,
-              color: Colors.green,
-            ),
-            title: Text(
-              "Permasalahan Kelas",
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
+                color: Colors.red,
               ),
             ),
           ),

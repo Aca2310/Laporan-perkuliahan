@@ -1,13 +1,15 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-class AppBarWidget extends StatelessWidget {
+class AppBarWidget extends StatelessWidget implements PreferredSizeWidget {
+  @override
+  Size get preferredSize => Size.fromHeight(kToolbarHeight);
+
   @override
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        // borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
             color: Colors.grey.withOpacity(0.5),
@@ -27,30 +29,31 @@ class AppBarWidget extends StatelessWidget {
           children: [
             Row(
               children: [
-                InkWell(
-                  onTap: () {
-                    Scaffold.of(context).openDrawer();
-                  },
-                  child: Container(
-                    padding: EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
+                if (MediaQuery.of(context).size.width < 600) // Cek lebar layar
+                  InkWell(
+                    onTap: () {
+                      Scaffold.of(context).openDrawer();
+                    },
+                    child: Container(
+                      padding: EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Icon(CupertinoIcons.bars),
                     ),
-                    child: Icon(CupertinoIcons.bars),
                   ),
-                ),
                 SizedBox(width: 20),
                 Image.asset(
-                  'assets/images/image.png', // Ganti dengan path logo KuliahQ Anda
-                  height: 30, // Sesuaikan tinggi logo
+                  'assets/images/image.png',
+                  height: 30,
                 ),
-                SizedBox(width: 10), // Jarak antara ikon dan logo
+                SizedBox(width: 10),
                 Text(
                   'KuliahQ',
                   style: TextStyle(
                     color: Colors.grey,
-                    fontSize: 20,
+                    fontSize: 25,
                     fontWeight: FontWeight.bold,
                   ),
                 ),

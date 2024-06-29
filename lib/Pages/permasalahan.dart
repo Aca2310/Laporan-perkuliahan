@@ -1,124 +1,214 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+
 import 'package:ui_tb/widget/AppBarWidget.dart';
 import 'package:ui_tb/widget/DrawerWidget.dart';
 
-class permasalahan extends StatelessWidget {
-  final String matkul; // Tambahkan parameter matkul
+class Permasalahan extends StatelessWidget {
+  Future<void> submitProblem(String problem, BuildContext context) async {
+    final storage = FlutterSecureStorage();
+    try {
+      final token = await storage.read(key: 'token');
 
-  permasalahan({required this.matkul}); // Perbarui constructor
+      final Map<String, dynamic> args =
+          ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+      final String courseId = args['courseId'];
+
+      final url = Uri.parse(
+          'https://backend-pmp.unand.dev/api/my-course/$courseId/problems');
+      final response = await http.post(
+        url,
+        headers: <String, String>{
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: jsonEncode(<String, String>{
+          'problem': problem,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Permasalahan berhasil dikirim'),
+            duration: Duration(seconds: 3), // Adjust as necessary
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content:
+                Text('Gagal mengirim permasalahan: ${response.statusCode}'),
+            duration: Duration(seconds: 3), // Adjust as necessary
+          ),
+        );
+      }
+    } catch (e) {
+      print('Error saat mengirim permasalahan: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Terjadi kesalahan saat mengirim permasalahan'),
+          duration: Duration(seconds: 3), // Adjust as necessary
+        ),
+      );
+    }
+    Navigator.pop(context);
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: ListView(
-        children: [
-          AppBarWidget(),
-          Padding(
-            padding: EdgeInsets.symmetric(
-              vertical: 10,
-              horizontal: 15,
-            ),
-          ),
-          Padding(
-            padding: EdgeInsets.only(top: 20, left: 20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+      appBar: AppBarWidget(),
+      drawer: MediaQuery.of(context).size.width < 600 ? DrawerWidget() : null,
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          if (constraints.maxWidth >= 600) {
+            return Row(
               children: [
-                Text(
-                  "Form Pengajuan Permasalah kelas",
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 20,
-                  ),
-                ),
-                SizedBox(height: 20),
-                Text(
-                  matkul, // Gunakan nilai matkul di sini
-                  style: TextStyle(
-                    fontSize: 16,
-                  ),
+                DrawerWidget(),
+                Expanded(
+                  child: _buildContent(context),
                 ),
               ],
-            ),
-          ),
-          SizedBox(height: 20),
-          Center(
-            child: Container(
-              width: 300,
-              // height: 150,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(10),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withOpacity(0.5),
-                    spreadRadius: 3,
-                    blurRadius: 10,
-                    offset: Offset(0, 3),
-                  ),
-                ],
-              ),
-              padding: EdgeInsets.all(10),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "Permasalahan apa yang hadapi selama matakuliah ini?",
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
+            );
+          } else {
+            return _buildContent(context);
+          }
+        },
+      ),
+    );
+  }
+
+  Widget _buildContent(BuildContext context) {
+    final Map<String, dynamic> args =
+        ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+    final String matkul = args['courseName'];
+    TextEditingController problemController = TextEditingController();
+
+    return ListView(
+      children: [
+        Padding(
+          padding: EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: EdgeInsets.only(top: 20, left: 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Form Pengajuan Permasalahan Kelas",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 20,
+                      ),
                     ),
-                  ),
-                  SizedBox(height: 20),
-                  Divider(
-                    color: Colors.grey, // Choose the color of the divider
-                    thickness: 1, // Choose the thickness of the divider
-                  ),
-                  SizedBox(height: 10),
-                  TextField(
-                    decoration: InputDecoration(
-                      hintText: 'Masukkan permasalahan Anda...',
-                      border: InputBorder.none,
+                    SizedBox(height: 20),
+                    Text(
+                      matkul,
+                      style: TextStyle(
+                        fontSize: 16,
+                      ),
                     ),
-                    maxLines: null,
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-          ),
-          SizedBox(height: 10),
-          Padding(
-            padding: EdgeInsets.symmetric(
-              vertical: 30,
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                GestureDetector(
-                  onTap: () {
-                    Navigator.pushNamed(context, "/");
-                  },
+              SizedBox(height: 20),
+              Center(
+                child: FractionallySizedBox(
+                  widthFactor: 0.9,
                   child: Container(
                     decoration: BoxDecoration(
-                      color: Colors.green,
-                      borderRadius: BorderRadius.circular(20),
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(10),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(0.5),
+                          spreadRadius: 3,
+                          blurRadius: 10,
+                          offset: Offset(0, 3),
+                        ),
+                      ],
                     ),
-                    padding: EdgeInsets.symmetric(horizontal: 30, vertical: 10),
-                    child: Text("Simpan",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        )),
+                    padding: EdgeInsets.all(10),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Permasalahan apa yang Anda hadapi selama matakuliah ini?",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                        SizedBox(height: 20),
+                        Divider(
+                          color: Colors.grey,
+                          thickness: 1,
+                        ),
+                        SizedBox(height: 10),
+                        TextField(
+                          controller: problemController,
+                          decoration: InputDecoration(
+                            hintText: 'Masukkan permasalahan Anda...',
+                            border: InputBorder.none,
+                          ),
+                          maxLines: null,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-                SizedBox(width: 20),
-              ],
-            ),
+              ),
+              SizedBox(height: 10),
+              Padding(
+                padding: EdgeInsets.symmetric(vertical: 30),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    GestureDetector(
+                      onTap: () {
+                        String problem = problemController.text.trim();
+                        if (problem.isNotEmpty) {
+                          submitProblem(problem, context);
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content:
+                                  Text('Masukkan permasalahan terlebih dahulu'),
+                              duration: Duration(seconds: 3),
+                            ),
+                          );
+                        }
+                      },
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.green,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 30, vertical: 10),
+                        child: Text(
+                          "Simpan",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 20),
+                  ],
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
-      drawer: DrawerWidget(),
+        ),
+      ],
     );
   }
 }
