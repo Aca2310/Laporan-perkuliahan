@@ -5,7 +5,8 @@ KHAIRIN NISA
 **UAS**
 
 GEMPA TERAKHIR
-![Uploading image.png…]()
+![Uploading WhatsApp Image 2024-07-07 at 23.38.15_374a2a08.jpg…]()
+
 
 
 
