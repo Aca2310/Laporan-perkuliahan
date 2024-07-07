@@ -5,11 +5,12 @@ KHAIRIN NISA
 **UAS**
 
 GEMPA TERAKHIR
-![Uploading image.png…]()
 
 
 
 
+
+![Screenshot (98)](https://github.com/Aca2310/Laporan-perkuliahan/assets/91947827/162b536d-e812-4417-bf6e-f4df9ac0eaa9)
 
 
 
