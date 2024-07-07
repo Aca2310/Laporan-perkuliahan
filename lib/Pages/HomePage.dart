@@ -23,16 +23,14 @@ class HomePage extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          "Matakuliah yang diambil",
+                          "Data Gempa Terakhir",
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 20,
                           ),
                         ),
                         SizedBox(height: 20),
-                        Expanded(
-                            child:
-                                MatkulWidget()), // MatkulWidget ditampilkan dalam expanded agar dapat di-scroll
+                        Expanded(child: EarthquakeWidget()),
                       ],
                     ),
                   ),
@@ -51,21 +49,20 @@ class HomePage extends StatelessWidget {
                 Padding(
                   padding: EdgeInsets.only(top: 20, left: 20),
                   child: Text(
-                    "Matakuliah yang diambil",
+                    "Data Gempa Terakhir",
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 20,
                     ),
                   ),
                 ),
-                MatkulWidget(),
+                EarthquakeWidget(),
               ],
             );
           }
         },
       ),
-      drawer:
-          DrawerWidget(), // Tampilkan drawer hanya pada layar kecil atau mobile
+      drawer: DrawerWidget(),
     );
   }
 }

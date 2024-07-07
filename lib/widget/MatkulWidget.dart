@@ -1,70 +1,50 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
-class MatkulWidget extends StatefulWidget {
+class EarthquakeWidget extends StatefulWidget {
   @override
-  _MatkulWidgetState createState() => _MatkulWidgetState();
+  _EarthquakeWidgetState createState() => _EarthquakeWidgetState();
 }
 
-class _MatkulWidgetState extends State<MatkulWidget> {
-  List<Course> courses = [];
-  final storage = FlutterSecureStorage();
+class _EarthquakeWidgetState extends State<EarthquakeWidget> {
+  List<Earthquake> earthquakes = [];
 
   @override
   void initState() {
     super.initState();
-    fetchCourses();
+    fetchEarthquakeData();
   }
 
-  Future<String?> getToken() async {
-    return await storage.read(key: 'token');
-  }
-
-  Future<void> fetchCourses() async {
+  Future<void> fetchEarthquakeData() async {
     try {
-      String? token = await getToken();
-      if (token == null) {
-        throw Exception('Token is null');
-      }
-
-      final url = Uri.parse('https://backend-pmp.unand.dev/api/my-courses');
-      final response = await http.get(
-        url,
-        headers: {
-          'Authorization': 'Bearer $token',
-        },
-      );
+      final url = Uri.parse(
+          'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/significant_month.geojson');
+      final response = await http.get(url);
 
       if (response.statusCode == 200) {
-        List<Course> fetchedCourses = [];
+        List<Earthquake> fetchedEarthquakes = [];
         final jsonData = jsonDecode(response.body);
 
-        if (jsonData['status'] == 'success') {
-          List<dynamic> coursesData = jsonData['courses'];
+        List<dynamic> features = jsonData['features'];
 
-          for (var courseData in coursesData) {
-            fetchedCourses.add(Course.fromJson(courseData));
-          }
-
-          setState(() {
-            courses = fetchedCourses;
-          });
-        } else {
-          throw Exception('Failed to load courses');
+        for (var feature in features) {
+          fetchedEarthquakes.add(Earthquake.fromJson(feature));
         }
+
+        setState(() {
+          earthquakes = fetchedEarthquakes;
+        });
       } else {
-        throw Exception('Failed to load courses');
+        throw Exception('Failed to load earthquake data');
       }
     } catch (e) {
-      print('Error fetching courses: $e');
+      print('Error fetching earthquake data: $e');
       // Handle error accordingly
     }
   }
 
-  Widget _buildMatkulCard(BuildContext context, String courseName,
-      String className, String semester) {
+  Widget _buildEarthquakeCard(BuildContext context, Earthquake earthquake) {
     double screenWidth = MediaQuery.of(context).size.width;
     double boxWidth = screenWidth * 0.9; // Using 90% of screen width
 
@@ -72,19 +52,13 @@ class _MatkulWidgetState extends State<MatkulWidget> {
       padding: const EdgeInsets.symmetric(vertical: 10),
       child: InkWell(
         onTap: () {
-          Navigator.pushNamed(context, "kelas", arguments: {
-            'courseName': courseName,
-            'className': className,
-            'courseId': courses
-                .firstWhere((course) => course.courseName == courseName)
-                .id,
-          });
+          // Handle tap if needed
         },
         child: Container(
           width: boxWidth,
           height: 150,
           decoration: BoxDecoration(
-            color: Colors.green,
+            color: Colors.red,
             borderRadius: BorderRadius.circular(10),
             boxShadow: [
               BoxShadow(
@@ -106,7 +80,7 @@ class _MatkulWidgetState extends State<MatkulWidget> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        courseName,
+                        'Magnitude: ${earthquake.magnitude}',
                         style: const TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
@@ -115,7 +89,7 @@ class _MatkulWidgetState extends State<MatkulWidget> {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        'Class: $className',
+                        'Location: ${earthquake.place}',
                         style: const TextStyle(
                           fontSize: 15,
                           color: Colors.white,
@@ -123,7 +97,7 @@ class _MatkulWidgetState extends State<MatkulWidget> {
                       ),
                       const SizedBox(height: 11),
                       Text(
-                        'Semester: $semester',
+                        'Time: ${earthquake.time}',
                         style: const TextStyle(
                           fontSize: 15,
                           color: Colors.white,
@@ -146,12 +120,10 @@ class _MatkulWidgetState extends State<MatkulWidget> {
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
         child: Column(
-          children: courses.map((course) {
-            return _buildMatkulCard(
+          children: earthquakes.map((earthquake) {
+            return _buildEarthquakeCard(
               context,
-              course.courseName,
-              course.className,
-              course.courseSemester.toString(),
+              earthquake,
             );
           }).toList(),
         ),
@@ -160,34 +132,23 @@ class _MatkulWidgetState extends State<MatkulWidget> {
   }
 }
 
-class Course {
-  final String id;
-  final String courseName;
-  final int courseCredit;
-  final int courseSemester;
-  final String className;
-  final String? lecturers;
-  final int status;
+class Earthquake {
+  final double magnitude;
+  final String place;
+  final String time;
 
-  Course({
-    required this.id,
-    required this.courseName,
-    required this.courseCredit,
-    required this.courseSemester,
-    required this.className,
-    this.lecturers,
-    required this.status,
+  Earthquake({
+    required this.magnitude,
+    required this.place,
+    required this.time,
   });
 
-  factory Course.fromJson(Map<String, dynamic> json) {
-    return Course(
-      id: json['id'],
-      courseName: json['course_name'],
-      courseCredit: json['course_credit'],
-      courseSemester: json['course_semester'],
-      className: json['class_name'],
-      lecturers: json['lecturers'],
-      status: json['status'],
+  factory Earthquake.fromJson(Map<String, dynamic> json) {
+    return Earthquake(
+      magnitude: json['properties']['mag'].toDouble(),
+      place: json['properties']['place'],
+      time: DateTime.fromMillisecondsSinceEpoch(json['properties']['time'])
+          .toString(),
     );
   }
 }
